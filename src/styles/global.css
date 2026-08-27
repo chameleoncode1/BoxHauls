@@ -1,0 +1,20 @@
+@import "./tokens.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.todo-marker {
+  display: inline-block;
+  color: var(--color-todo);
+  background-color: var(--color-todo-bg);
+  padding: 0 0.35em;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}

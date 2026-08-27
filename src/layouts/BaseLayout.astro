@@ -1,0 +1,52 @@
+---
+// Shared stub shell for every template layout. Prompt 2 replaces the stub
+// body with the real per-template structure (header/footer, breadcrumbs,
+// JSON-LD, RelatedLinks, BodyLinks) — see docs/PLAN.md §1.
+import "../styles/global.css";
+import { substitute } from "../lib/placeholders";
+import type { SitemapEntry } from "../lib/sitemap";
+
+interface Props {
+  entry: SitemapEntry;
+  template: string;
+}
+
+const { entry, template } = Astro.props;
+const h1 = substitute(entry.h1, entry.url);
+const contentBlocks = substitute(entry.content_blocks, entry.url);
+const canonical = new URL(entry.url, "https://boxhauls.com").toString();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{h1} | BoxHauls</title>
+    <link rel="canonical" href={canonical} />
+  </head>
+  <body>
+    <main class="mx-auto max-w-container px-4 py-12">
+      <p class="text-sm text-text-muted mb-2">
+        Template: <strong>{template}</strong> · Phase {entry.phase} · Cluster: {entry.cluster} · {entry.page_type}
+      </p>
+
+      <h1 class="text-4xl font-bold leading-tight mb-6">{h1}</h1>
+
+      <section class="mb-8 rounded-md border border-border bg-surface p-4">
+        <h2 class="text-lg font-semibold mb-2">Required content blocks</h2>
+        <p class="text-text-muted whitespace-pre-wrap">{contentBlocks}</p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-lg font-semibold mb-2">Links to</h2>
+        <ul class="list-disc pl-5 space-y-1">
+          {entry.links_to.map((href) => (
+            <li><a class="text-accent underline" href={href}>{href}</a></li>
+          ))}
+        </ul>
+      </section>
+
+      <slot />
+    </main>
+  </body>
+</html>

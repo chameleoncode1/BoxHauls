@@ -1,0 +1,14 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import type { SitemapEntry } from "../lib/sitemap";
+
+interface Props {
+  entry: SitemapEntry;
+}
+
+const { entry } = Astro.props;
+---
+
+<BaseLayout entry={entry} template="pricing">
+  <slot />
+</BaseLayout>

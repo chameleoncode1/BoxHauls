@@ -1,0 +1,66 @@
+---
+// Generates one route per entry in docs/sitemap.json. Never hand-list
+// routes here (CLAUDE.md hard rule #1) — add pages via build_map.py,
+// run `npm run map`, then this file picks them up automatically.
+import { getPages, type SitemapEntry } from "../lib/sitemap";
+import { substitute } from "../lib/placeholders";
+
+import HomeLayout from "../layouts/HomeLayout.astro";
+import CoreLayout from "../layouts/CoreLayout.astro";
+import PricingLayout from "../layouts/PricingLayout.astro";
+import ServiceHubLayout from "../layouts/ServiceHubLayout.astro";
+import ServiceSpokeLayout from "../layouts/ServiceSpokeLayout.astro";
+import CityLayout from "../layouts/CityLayout.astro";
+import CompareLayout from "../layouts/CompareLayout.astro";
+import GuideLayout from "../layouts/GuideLayout.astro";
+import DriverLayout from "../layouts/DriverLayout.astro";
+import PartnersLayout from "../layouts/PartnersLayout.astro";
+import LegalLayout from "../layouts/LegalLayout.astro";
+
+const LAYOUTS = {
+  home: HomeLayout,
+  core: CoreLayout,
+  pricing: PricingLayout,
+  "service-hub": ServiceHubLayout,
+  "service-spoke": ServiceSpokeLayout,
+  city: CityLayout,
+  compare: CompareLayout,
+  guide: GuideLayout,
+  driver: DriverLayout,
+  partners: PartnersLayout,
+  legal: LegalLayout,
+} as const;
+
+export async function getStaticPaths() {
+  return getPages().map((entry) => {
+    // URLs and links_to targets can themselves contain placeholders
+    // (e.g. /cities/{{metro-slug}}/, /drive/{{metro-slug}}/) — resolve
+    // those before deriving the route, or the built path is a literal
+    // "{{metro-slug}}" segment instead of "fresno".
+    const resolvedEntry: SitemapEntry = {
+      ...entry,
+      url: substitute(entry.url, entry.url),
+      links_to: entry.links_to.map((href) => substitute(href, entry.url)),
+    };
+
+    // "/" -> slug undefined (root); "/how-it-works/" -> "how-it-works";
+    // "/pricing/truck-sizes/" -> "pricing/truck-sizes"
+    const trimmed = resolvedEntry.url.replace(/^\/|\/$/g, "");
+    return {
+      params: { slug: trimmed === "" ? undefined : trimmed },
+      props: { entry: resolvedEntry },
+    };
+  });
+}
+
+const { entry } = Astro.props as { entry: SitemapEntry };
+const Layout = LAYOUTS[entry.template as keyof typeof LAYOUTS];
+
+if (!Layout) {
+  throw new Error(
+    `No layout registered for template "${entry.template}" (${entry.url}). Add src/layouts/<Template>Layout.astro and register it in LAYOUTS above.`
+  );
+}
+---
+
+<Layout entry={entry} />
