@@ -27,6 +27,15 @@ function walkHtmlFiles(dir) {
 
 const ANCHOR_RE = /<a\b[^>]*\bhref="([^"]+)"/gi;
 
+// App-only routes (map §12: noindexed, not a landing page) that are
+// intentionally never statically built — same category as /auth,
+// /account, /embed/, /api/. Book CTAs correctly link to
+// /book/?item=X&tier=Y (kickoff Prompt 5) before that flow exists.
+const APP_ONLY_PREFIXES = ["/book/", "/auth", "/account", "/embed/", "/api/"];
+function isAppOnlyRoute(pathname) {
+  return APP_ONLY_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
 function pageUrlFor(file) {
   const rel = path.relative(distDir, path.dirname(file)).split(path.sep).filter(Boolean).join("/");
   return rel === "" ? "/" : `/${rel}/`;
@@ -55,6 +64,7 @@ for (const file of htmlFiles) {
     if (href.startsWith(SITE)) href = href.slice(SITE.length) || "/";
     if (!href.startsWith("/") || href.startsWith("//")) continue; // external, mailto:, tel:
     const pathname = href.split(/[?#]/)[0];
+    if (isAppOnlyRoute(pathname)) continue;
     checkedCount++;
     if (!targetExists(pathname)) {
       broken.push({ source: sourceUrl, target: pathname });

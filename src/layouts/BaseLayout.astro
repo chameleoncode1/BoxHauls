@@ -1,14 +1,14 @@
 ---
-// Shared shell for every template layout (docs/PLAN.md §1). Real
-// per-template body structure is a thin concern here — the sitemap's
-// content_blocks field lists what each page still needs, which kickoff
-// Prompt 4 turns into real copy; this renders that inventory plus the
-// structural pieces (header/footer, breadcrumbs, JSON-LD, linking) that
-// don't depend on that copy existing yet.
+// Shared shell for every template layout (docs/PLAN.md §1). Real content
+// (src/content/pages/*.mdx) takes over the body once it exists for a
+// page; until then the content_blocks stub shows what's still needed.
+// Header/footer, breadcrumbs, JSON-LD, and linking are structural and
+// render the same either way.
 import "../styles/global.css";
 import { substitute } from "../lib/placeholders";
 import { getMeta } from "../lib/meta";
 import { buildSchema } from "../lib/schema";
+import { getPageContent } from "../lib/content";
 import type { SitemapEntry } from "../lib/sitemap";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -27,7 +27,10 @@ const h1 = substitute(entry.h1, entry.url);
 const contentBlocks = substitute(entry.content_blocks, entry.url);
 const canonical = new URL(entry.url, "https://boxhauls.com").toString();
 const meta = getMeta(entry);
-const schema = buildSchema(entry);
+const pageContent = await getPageContent(entry.url);
+const schema = buildSchema(entry, pageContent?.entry.data);
+const { Content } = pageContent ?? {};
+const data = pageContent?.entry.data;
 ---
 
 <html lang="en">
@@ -58,25 +61,69 @@ const schema = buildSchema(entry);
     <main class="mx-auto max-w-container px-4 py-12">
       <Breadcrumbs url={entry.url} />
 
-      <p class="text-sm text-text-muted mb-2">
-        Template: <strong>{template}</strong> · Phase {entry.phase} · Cluster: {entry.cluster} · {entry.page_type}
-      </p>
-
       <h1 class="text-4xl font-bold leading-tight mb-6">{h1}</h1>
 
-      <!-- qa:ignore-start — this box quotes docs/sitemap.json's own
-           content_blocks planning text verbatim (e.g. "cargo insurance",
-           "not freight"), not authored copy. npm run qa excludes it from
-           the banned-phrase check for that reason; it disappears once
-           Prompt 4 replaces it with real prose. -->
-      <section class="mb-8 rounded-md border border-border bg-surface p-4">
-        <h2 class="text-lg font-semibold mb-2">Required content blocks</h2>
-        <p class="text-text-muted whitespace-pre-wrap">{contentBlocks}</p>
-      </section>
-      <!-- qa:ignore-end -->
+      {Content ? (
+        <>
+          <article class="prose mb-8">
+            <Content />
+          </article>
+
+          {data?.howToSteps && data.howToSteps.length > 0 && (
+            <section class="mb-8">
+              <h2 class="text-2xl font-semibold mb-4">Steps</h2>
+              <ol class="list-decimal pl-5 space-y-3">
+                {data.howToSteps.map((step) => (
+                  <li>
+                    <strong>{step.name}</strong> — {step.text}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {data?.faqs && data.faqs.length > 0 && (
+            <section class="mb-8">
+              <h2 class="text-2xl font-semibold mb-4">Frequently asked questions</h2>
+              <div class="space-y-6">
+                {data.faqs.map((faq) => (
+                  <div>
+                    <h3 class="font-semibold mb-1">{faq.question}</h3>
+                    <p class="text-text-muted">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {(data?.author || data?.updated) && (
+            <p class="text-sm text-text-muted mb-8">
+              {data?.author && substitute(data.author, entry.url)}
+              {data?.author && data?.updated && " · "}
+              {data?.updated && `Facts checked ${data.updated}`}
+            </p>
+          )}
+        </>
+      ) : (
+        <!-- qa:ignore-start — this box quotes docs/sitemap.json's own
+             content_blocks planning text verbatim (e.g. "cargo insurance",
+             "not freight"), not authored copy. npm run qa excludes it from
+             the banned-phrase check for that reason; it disappears once
+             this page gets a src/content/pages/*.mdx file. -->
+        <>
+          <p class="text-sm text-text-muted mb-2">
+            Template: <strong>{template}</strong> · Phase {entry.phase} · Cluster: {entry.cluster} · {entry.page_type}
+          </p>
+          <section class="mb-8 rounded-md border border-border bg-surface p-4">
+            <h2 class="text-lg font-semibold mb-2">Required content blocks</h2>
+            <p class="text-text-muted whitespace-pre-wrap">{contentBlocks}</p>
+          </section>
+        </>
+        <!-- qa:ignore-end -->
+      )}
 
       <section class="mb-8">
-        <h2 class="text-lg font-semibold mb-2">Links to</h2>
+        <h2 class="text-lg font-semibold mb-2">{Content ? "Learn more" : "Links to"}</h2>
         <BodyLinks links={entry.links_to} />
       </section>
 

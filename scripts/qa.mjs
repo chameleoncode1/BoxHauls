@@ -123,13 +123,14 @@ function escapeRegExp(s) {
 const bannedPatterns = BANNED_PHRASES.map((p) => ({ phrase: p, re: new RegExp(`\\b${escapeRegExp(p)}\\b`, "i") }));
 
 // -------------------------------------------------------- deferred schema
-// FAQPage / HowTo / Article need real, visible page copy to mirror
-// (kickoff Prompt 4); Person is required only on /about/ (founder) — a
-// guide-author Person needs a real byline, also Prompt 4. See
-// src/lib/schema.ts's docstring for the full rationale. These report as
-// warnings, not failures, until that content exists.
+// FAQPage / HowTo / Article are built by schema.ts from real content
+// (src/content/pages/*.mdx) once it exists for a page — a Phase-1 page
+// that requests one of these but has no content yet is failing for a
+// real reason (it needs writing), not a permanently-deferred one. Person
+// stays deferred except on /about/: a guide's byline is interim text
+// ("BoxHauls team, reviewed by X"), not a real named Person entity, until
+// one exists. See src/lib/schema.ts's docstring for the full rationale.
 function isDeferredSchemaType(type, entryUrl) {
-  if (type === "FAQPage" || type === "HowTo" || type === "Article") return true;
   if (type === "Person" && entryUrl !== "/about/") return true;
   return false;
 }
@@ -212,6 +213,31 @@ function checkPage(entry) {
 
   // no unresolved {{...}}
   if (html.includes("{{")) result.failures.push("unresolved {{...}} found in rendered HTML");
+
+  // audience isolation in body copy (CLAUDE.md #7 / map §2): rider pages
+  // never link to /drive/, driver pages never link to /services/. Scoped
+  // to the hand-authored <article> (real MDX content), not the whole
+  // page — the footer intentionally carries the one permitted /drive/
+  // link on rider pages. A target already listed in this page's own
+  // links_to is exempt: the map itself sanctions it for this specific
+  // page (e.g. /app/'s required "driver app link"), which is a
+  // deliberate exception, not a violation.
+  const articleMatch = html.match(/<article\b[^>]*>([\s\S]*?)<\/article>/);
+  if (articleMatch) {
+    const articleHtml = articleMatch[1];
+    const isDriverPage = entry.template === "driver";
+    const sanctionedTargets = new Set(entry.links_to.map(resolvedUrl).filter(Boolean));
+    const articleHrefs = [...articleHtml.matchAll(/<a\b[^>]*\bhref="([^"]+)"/gi)].map((m) => m[1]);
+    for (const href of articleHrefs) {
+      if (sanctionedTargets.has(href)) continue;
+      if (!isDriverPage && href.startsWith("/drive/")) {
+        result.failures.push(`rider page links to ${href} in body copy, not in this page's links_to (CLAUDE.md #7)`);
+      }
+      if (isDriverPage && href.startsWith("/services/")) {
+        result.failures.push(`driver page links to ${href} in body copy, not in this page's links_to (CLAUDE.md #7)`);
+      }
+    }
+  }
 
   // banned phrases absent (excluding the qa:ignore-marked scaffolding box
   // that quotes docs/sitemap.json's own planning text verbatim — see the

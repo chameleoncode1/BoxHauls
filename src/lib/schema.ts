@@ -157,6 +157,43 @@ function buildJobPosting(entry: SitemapEntry, ph: Record<string, string>): Node 
   return node;
 }
 
+function buildFaqPage(faqs: { question: string; answer: string }[]): Node {
+  return {
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+}
+
+function buildHowTo(entry: SitemapEntry, steps: { name: string; text: string }[]): Node {
+  return {
+    "@type": "HowTo",
+    name: substitute(entry.h1, entry.url),
+    step: steps.map((s) => ({ "@type": "HowToStep", name: s.name, text: s.text })),
+  };
+}
+
+function buildArticle(entry: SitemapEntry, author: string | undefined, updated: string | undefined): Node {
+  const node: Node = {
+    "@type": "Article",
+    headline: substitute(entry.h1, entry.url),
+    publisher: { "@id": ORG_ID },
+  };
+  // A real named author with a bio is still pending (map §9 rule 8) — an
+  // interim "BoxHauls team, reviewed by X" credit isn't a schema.org
+  // Person, so it's recorded as plain text via creditText rather than a
+  // fabricated Person node.
+  if (author) node.creditText = substitute(author, entry.url);
+  if (updated) {
+    node.datePublished = updated;
+    node.dateModified = updated;
+  }
+  return node;
+}
+
 function buildContactPoint(ph: Record<string, string>): Node {
   return {
     "@type": "ContactPoint",
@@ -168,22 +205,33 @@ function buildContactPoint(ph: Record<string, string>): Node {
   };
 }
 
+export interface SchemaContent {
+  faqs?: { question: string; answer: string }[];
+  howToSteps?: { name: string; text: string }[];
+  author?: string;
+  updated?: string;
+}
+
 /**
  * Builds one JSON-LD @graph per page from the sitemap entry's "schema"
- * array + docs/placeholders.json (map §11). Organization (@id
- * #organization) and BreadcrumbList are included on every page regardless
- * of whether the entry's schema array lists them.
+ * array + docs/placeholders.json (map §11) + that page's real content
+ * (src/content/pages/*.mdx, if it exists yet — see src/lib/content.ts).
+ * Organization (@id #organization) and BreadcrumbList are included on
+ * every page regardless of whether the entry's schema array lists them.
  *
- * FAQPage / HowTo / Article / Person(guide author) are deliberately NOT
- * built here even when requested by entry.schema: each must mirror real,
- * visible page text (map §11: "Never emit FAQPage whose questions are not
- * visible on the page") that doesn't exist until kickoff Prompt 4 writes
- * it. Emitting them now would mean fabricating structured data with no
- * corresponding content, which is the CLAUDE.md rule #2/#3 violation to
- * avoid. Person for /about/ is included, since {{FOUNDER_NAME}} is a
- * resolved fact rather than freeform authored copy.
+ * FAQPage / HowTo / Article all require `content` to supply the matching
+ * data (faqs / howToSteps / author+updated) — a page whose real copy
+ * hasn't been written yet (most of Phase 2/3, or a Phase-1 page still
+ * pending) simply doesn't get that node, rather than emitting structured
+ * data with no visible content to mirror (map §11: "Never emit FAQPage
+ * whose questions are not visible on the page").
+ *
+ * Person is still built only for /about/ ({{FOUNDER_NAME}} is a resolved
+ * fact, not freeform copy) — a guide's byline is interim text ("BoxHauls
+ * team, reviewed by X"), not a real named Person, so it's recorded on the
+ * Article node as creditText instead (see buildArticle).
  */
-export function buildSchema(entry: SitemapEntry): Node {
+export function buildSchema(entry: SitemapEntry, content?: SchemaContent | null): Node {
   const ph = getFlatPlaceholders();
   const graph: Node[] = [buildOrganization(ph), buildBreadcrumbList(entry)];
 
@@ -219,12 +267,17 @@ export function buildSchema(entry: SitemapEntry): Node {
         if (entry.url === "/about/" && isResolvedValue(ph.FOUNDER_NAME)) {
           graph.push({ "@type": "Person", name: ph.FOUNDER_NAME, jobTitle: "Founder", worksFor: { "@id": ORG_ID } });
         }
-        // Guide-author Person nodes need a real byline — deferred to Prompt 4.
+        // Guide-author Person nodes need a real named byline, not yet available.
         break;
       case "FAQPage":
+        if (content?.faqs?.length) graph.push(buildFaqPage(content.faqs));
+        break;
       case "HowTo":
+        if (content?.howToSteps?.length) graph.push(buildHowTo(entry, content.howToSteps));
+        break;
       case "Article":
-        break; // deferred to Prompt 4 — see docstring above
+        if (content?.author || content?.updated) graph.push(buildArticle(entry, content?.author, content?.updated));
+        break;
       default:
         break;
     }
