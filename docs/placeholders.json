@@ -19,6 +19,7 @@
   "BASE_FARE": "$17",
   "PER_MILE": "$3.10",
   "HEAVY_FEE": "$12",
+  "HEAVY_FEE_THRESHOLD": "TODO",
   "HELPER_FEE": "TODO",
   "STAIRS_FEE": "TODO",
   "WAIT_TIME_FEE": "TODO",
