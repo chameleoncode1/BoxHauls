@@ -1,6 +1,6 @@
 # Progress
 
-## Status: kickoff Prompts 1-5 complete — full Phase-1 site + booking widget + all of Phase 2 (194/194 non-Phase-3 pages built, 0 QA failures, 0 broken links, 0 type errors)
+## Status: kickoff Prompts 1-5 complete — full Phase-1 site, booking widget, all of Phase 2, and 9/10 Phase-3 pages (193/194 sitemap routes have real content, 0 QA failures, 0 broken links, 0 type errors)
 
 ## What shipped
 
@@ -61,9 +61,18 @@ One flagged, unresolved: the `x` (Twitter) social handle in `placeholders.json` 
 
 Each sub-cluster: written, hub pages updated to link every child, `npm run qa` / `npm run links` / `astro check` run clean, visual spot-check in the dev server, committed separately.
 
+## Phase 3 — 9/10 pages shipped, 1 deliberately withheld
+
+7 remaining guide spokes (bed-frame disassembly, Marketplace payment safety, mattress-in-a-box vs. traditional, apartment turnovers, spring cleanout, holiday delivery, college move-out week) plus the driver tax-deductions guide, all following the same patterns and honesty rules as Phase 2.
+
+**`/pricing/pickup-truck-delivery-cost/` — honest empty state, not fabricated data.** Its map spec calls for "anonymized real trip data... distribution chart; medians by item type." BoxHauls hasn't launched, so none of that exists. Rather than invent numbers or leave the route as a bare stub, the page ships with the same formula-based worked examples every other pricing page uses, plus a section stating plainly that real trip data isn't available yet and explaining what will replace it once there's meaningful volume.
+
+**`/cities/{{metro-slug}}/{{neighborhood-slug}}/` (e.g. `/cities/fresno/clovis/`) — deliberately NOT built.** Two independent reasons, either one sufficient alone: (1) CLAUDE.md hard rule #6 says "Only `/cities/fresno/` exists at launch. Do not generate city or neighborhood pages from a template, ever." (2) the map's own content spec marks it "OPTIONAL, phase 3, only with ≥20 completed trips in the neighborhood" — data that can't exist pre-launch. Same category of deliberate non-build as `/es/` from Phase 2, documented here rather than silently skipped. The route still builds (as a stub, like every other un-authored sitemap entry) — only its MDX content was withheld.
+
 ## Not started
 
 - **Real booking backend**: geocoding/routing, driver matching, payment processing — the widget is a UI stub with mock pricing, by design (kickoff Prompt 5's own instruction, no legacy component existed to port).
 - **`GA4_MEASUREMENT_ID`**: still `TODO` — analytics events fire to the console in dev but nowhere real until this is resolved.
 - **Spanish `/es/`** for `/drive/` and core pages — deliberately not scaffolded; `/es/drive/*` isn't in `docs/sitemap.json`, and CLAUDE.md hard rule #1 means routes come from the sitemap via `build_map.py`, not hand-created.
-- **Phase 3** (10 pages): real-trip pricing data page, neighborhood pages (Clovis first, gated), seasonal guides, second metro. Routes already build as stubs; no real content yet.
+- **The gated neighborhood page** — see above. Will need a `build_map.py`/sitemap decision (real trip-count threshold, real launch data) before it's revisited, not just more writing.
+- **Second metro** — not started; no second-metro facts exist in `docs/placeholders.json` to build from.
