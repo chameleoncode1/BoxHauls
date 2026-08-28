@@ -1,0 +1,36 @@
+---
+// Map §10: "3-5 links chosen per page from the same cluster; never
+// sitewide; never the homepage."
+import { getResolvedCluster, type SitemapEntry } from "../lib/sitemap";
+import { substitute } from "../lib/placeholders";
+
+interface Props {
+  entry: SitemapEntry;
+  max?: number;
+}
+
+const { entry, max = 5 } = Astro.props;
+
+// "never the homepage" (map §10) reads as: the homepage never gets a
+// generic Related module (it's already the top of the hierarchy), and
+// "/" is never offered as a suggested link on any other page.
+const isHome = entry.url === "/";
+const related = isHome
+  ? []
+  : getResolvedCluster(entry.cluster)
+      .filter((p) => p.url !== entry.url && p.url !== "/")
+      .slice(0, max);
+---
+
+{related.length > 0 && (
+  <nav aria-label="Related" class="mt-8">
+    <h2 class="text-lg font-semibold mb-2">Related</h2>
+    <ul class="list-disc pl-5 space-y-1">
+      {related.map((p) => (
+        <li>
+          <a class="text-accent underline" href={p.url}>{substitute(p.h1, p.url)}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}

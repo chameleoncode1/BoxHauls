@@ -1,0 +1,56 @@
+---
+// Map §10 header rule: Logo -> /; Pricing; Services dropdown (five hubs);
+// How it works; Trust; Get the app. The driver link never appears in the
+// header on rider pages (footer only, map §2). Driver-template pages get
+// a single "For customers" link back to / instead of the rider nav —
+// audience isolation is structural, not a copy choice.
+import type { SitemapEntry } from "../lib/sitemap";
+
+interface Props {
+  entry: SitemapEntry;
+}
+
+const { entry } = Astro.props;
+const isDriver = entry.template === "driver";
+
+const serviceHubs = [
+  ["/services/furniture-delivery/", "Furniture & Large-Item Delivery"],
+  ["/services/small-moves/", "Small Moves"],
+  ["/services/appliance-delivery/", "Appliance Delivery & Haul-Away"],
+  ["/services/junk-removal/", "Junk Removal & Dump Runs"],
+  ["/services/business-hauling/", "Business & Jobsite Hauling"],
+] as const;
+---
+
+<header class="border-b border-border">
+  <div class="mx-auto max-w-container px-4 py-4 flex items-center justify-between gap-4">
+    <a href="/" class="font-bold text-lg text-text">BoxHauls</a>
+
+    {isDriver ? (
+      <a class="text-sm underline" href="/">For customers</a>
+    ) : (
+      <nav aria-label="Primary" class="hidden md:flex items-center gap-6 text-sm">
+        <a href="/pricing/">Pricing</a>
+
+        <div class="relative group">
+          <button type="button" class="inline-flex items-center gap-1" aria-haspopup="true">
+            Services
+          </button>
+          <ul
+            class="absolute left-0 top-full hidden group-hover:block group-focus-within:block bg-bg border border-border rounded-md p-2 min-w-[16rem] shadow-sm z-10"
+          >
+            {serviceHubs.map(([href, label]) => (
+              <li>
+                <a class="block px-2 py-1.5 rounded-sm hover:bg-surface" href={href}>{label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <a href="/how-it-works/">How it works</a>
+        <a href="/trust/">Trust</a>
+        <a href="/app/">Get the app</a>
+      </nav>
+    )}
+  </div>
+</header>

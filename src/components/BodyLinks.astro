@@ -1,0 +1,30 @@
+---
+// Map §10: "In-body links ... in sentences, with descriptive anchors that
+// name the destination's topic. Never 'click here' ... or a bare brand
+// name." Anchor text is the target page's own H1 rather than its URL or
+// generic text. The real prose sentence this sits inside is written in
+// kickoff Prompt 4 — this renders the link inventory in sentence form
+// ahead of that content existing.
+import { getResolvedEntryByUrl } from "../lib/sitemap";
+import { substitute } from "../lib/placeholders";
+
+interface Props {
+  links: string[]; // resolved absolute paths
+}
+
+const { links } = Astro.props;
+
+const items = links.map((href) => {
+  const target = getResolvedEntryByUrl(href);
+  const anchorText = target ? substitute(target.h1, target.url) : href;
+  return { href, anchorText };
+});
+---
+
+<ul class="list-disc pl-5 space-y-2">
+  {items.map(({ href, anchorText }) => (
+    <li>
+      See <a class="text-accent underline" href={href}>{anchorText}</a>.
+    </li>
+  ))}
+</ul>

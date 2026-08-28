@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { substitute } from "./placeholders";
 
 export interface SitemapEntry {
   url: string;
@@ -24,6 +25,7 @@ interface SitemapFile {
 }
 
 let cached: SitemapFile | null = null;
+let resolvedCache: SitemapEntry[] | null = null;
 
 function load(): SitemapFile {
   if (!cached) {
@@ -37,14 +39,33 @@ export function getSitemap(): SitemapFile {
   return load();
 }
 
+/** Raw sitemap entries — url and links_to may still contain {{tokens}}. */
 export function getPages(): SitemapEntry[] {
   return load().pages;
 }
 
-export function getEntryByUrl(url: string): SitemapEntry | undefined {
-  return getPages().find((p) => p.url === url);
+/**
+ * Sitemap entries with url and links_to resolved through
+ * docs/placeholders.json (e.g. /cities/{{metro-slug}}/ -> /cities/fresno/).
+ * This is the single place that resolution happens — routes, breadcrumbs,
+ * schema, and internal-linking components all read from here so a target
+ * URL always matches the route that was actually built.
+ */
+export function getResolvedPages(): SitemapEntry[] {
+  if (!resolvedCache) {
+    resolvedCache = getPages().map((entry) => ({
+      ...entry,
+      url: substitute(entry.url, entry.url),
+      links_to: entry.links_to.map((href) => substitute(href, entry.url)),
+    }));
+  }
+  return resolvedCache;
 }
 
-export function getCluster(cluster: string): SitemapEntry[] {
-  return getPages().filter((p) => p.cluster === cluster);
+export function getResolvedEntryByUrl(url: string): SitemapEntry | undefined {
+  return getResolvedPages().find((p) => p.url === url);
+}
+
+export function getResolvedCluster(cluster: string): SitemapEntry[] {
+  return getResolvedPages().filter((p) => p.cluster === cluster);
 }

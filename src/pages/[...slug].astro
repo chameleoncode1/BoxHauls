@@ -2,8 +2,7 @@
 // Generates one route per entry in docs/sitemap.json. Never hand-list
 // routes here (CLAUDE.md hard rule #1) — add pages via build_map.py,
 // run `npm run map`, then this file picks them up automatically.
-import { getPages, type SitemapEntry } from "../lib/sitemap";
-import { substitute } from "../lib/placeholders";
+import { getResolvedPages, type SitemapEntry } from "../lib/sitemap";
 
 import HomeLayout from "../layouts/HomeLayout.astro";
 import CoreLayout from "../layouts/CoreLayout.astro";
@@ -32,23 +31,13 @@ const LAYOUTS = {
 } as const;
 
 export async function getStaticPaths() {
-  return getPages().map((entry) => {
-    // URLs and links_to targets can themselves contain placeholders
-    // (e.g. /cities/{{metro-slug}}/, /drive/{{metro-slug}}/) — resolve
-    // those before deriving the route, or the built path is a literal
-    // "{{metro-slug}}" segment instead of "fresno".
-    const resolvedEntry: SitemapEntry = {
-      ...entry,
-      url: substitute(entry.url, entry.url),
-      links_to: entry.links_to.map((href) => substitute(href, entry.url)),
-    };
-
+  return getResolvedPages().map((entry) => {
     // "/" -> slug undefined (root); "/how-it-works/" -> "how-it-works";
     // "/pricing/truck-sizes/" -> "pricing/truck-sizes"
-    const trimmed = resolvedEntry.url.replace(/^\/|\/$/g, "");
+    const trimmed = entry.url.replace(/^\/|\/$/g, "");
     return {
       params: { slug: trimmed === "" ? undefined : trimmed },
-      props: { entry: resolvedEntry },
+      props: { entry },
     };
   });
 }

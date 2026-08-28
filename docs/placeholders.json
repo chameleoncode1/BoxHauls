@@ -15,7 +15,6 @@
   "RADIUS": "30",
   "TIER_1": "Box Run",
   "TIER_2": "Dump Run",
-  "TIER_3": "Large Item Store Pick-up",
   "TIER_3": "Heavy Haul",
   "BASE_FARE": "$17",
   "PER_MILE": "$3.10",

@@ -1,0 +1,64 @@
+---
+// Map §10 footer rule: <=12 links (five hubs, /pricing/, /trust/,
+// /cities/, /guides/, /drive/, /partners/, /contact/) + NAP + app badges,
+// nothing else — for rider pages. Driver pages get a distinct, smaller
+// footer instead of reusing this list: CLAUDE.md #7 / map §2 forbid
+// driver pages linking to /services/ or /pricing/, and the rider footer
+// is exactly that list, so it can't be reused as-is for the /drive/
+// audience.
+import type { SitemapEntry } from "../lib/sitemap";
+import { substitute } from "../lib/placeholders";
+
+interface Props {
+  entry: SitemapEntry;
+}
+
+const { entry } = Astro.props;
+const isDriver = entry.template === "driver";
+
+const riderLinks = [
+  ["/services/furniture-delivery/", "Furniture & Large-Item Delivery"],
+  ["/services/small-moves/", "Small Moves"],
+  ["/services/appliance-delivery/", "Appliance Delivery & Haul-Away"],
+  ["/services/junk-removal/", "Junk Removal & Dump Runs"],
+  ["/services/business-hauling/", "Business & Jobsite Hauling"],
+  ["/pricing/", "Pricing"],
+  ["/trust/", "Trust & Safety"],
+  ["/cities/", "Cities"],
+  ["/guides/", "Guides"],
+  ["/drive/", "Drive for BoxHauls"],
+  ["/partners/", "Partners"],
+  ["/contact/", "Contact"],
+] as const;
+
+const driverLinks = [
+  ["/drive/requirements/", "Requirements"],
+  ["/drive/earnings/", "Earnings"],
+  ["/drive/equipment/", "Equipment"],
+  ["/drive/safety/", "Safety"],
+  ["/drive/faq/", "Driver FAQ"],
+  ["/drive/apply/", "Apply to drive"],
+  ["/legal/driver-agreement/", "Driver agreement"],
+  ["/contact/", "Contact"],
+] as const;
+
+const links = isDriver ? driverLinks : riderLinks;
+const nap = substitute("{{LEGAL_NAME}} · {{ADDRESS}} · {{PHONE}}", entry.url);
+---
+
+<footer class="border-t border-border mt-16">
+  <div class="mx-auto max-w-container px-4 py-12">
+    <nav aria-label="Footer" class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 mb-8 text-sm">
+      {links.map(([href, label]) => (
+        <a class="underline" href={href}>{label}</a>
+      ))}
+    </nav>
+
+    <div class="text-sm text-text-muted space-y-2">
+      <p>{nap}</p>
+      <p>
+        <a class="underline" href="/app/">Get the app</a>
+      </p>
+    </div>
+  </div>
+</footer>

@@ -1,10 +1,20 @@
 ---
-// Shared stub shell for every template layout. Prompt 2 replaces the stub
-// body with the real per-template structure (header/footer, breadcrumbs,
-// JSON-LD, RelatedLinks, BodyLinks) — see docs/PLAN.md §1.
+// Shared shell for every template layout (docs/PLAN.md §1). Real
+// per-template body structure is a thin concern here — the sitemap's
+// content_blocks field lists what each page still needs, which kickoff
+// Prompt 4 turns into real copy; this renders that inventory plus the
+// structural pieces (header/footer, breadcrumbs, JSON-LD, linking) that
+// don't depend on that copy existing yet.
 import "../styles/global.css";
 import { substitute } from "../lib/placeholders";
+import { getMeta } from "../lib/meta";
+import { buildSchema } from "../lib/schema";
 import type { SitemapEntry } from "../lib/sitemap";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import Breadcrumbs from "../components/Breadcrumbs.astro";
+import BodyLinks from "../components/BodyLinks.astro";
+import RelatedLinks from "../components/RelatedLinks.astro";
 
 interface Props {
   entry: SitemapEntry;
@@ -15,17 +25,37 @@ const { entry, template } = Astro.props;
 const h1 = substitute(entry.h1, entry.url);
 const contentBlocks = substitute(entry.content_blocks, entry.url);
 const canonical = new URL(entry.url, "https://boxhauls.com").toString();
+const meta = getMeta(entry);
+const schema = buildSchema(entry);
 ---
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{h1} | BoxHauls</title>
+    <title>{meta.title}</title>
+    <meta name="description" content={meta.description} />
     <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BoxHauls" />
+    <meta property="og:title" content={meta.title} />
+    <meta property="og:description" content={meta.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={meta.ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={meta.title} />
+    <meta name="twitter:description" content={meta.description} />
+    <meta name="twitter:image" content={meta.ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} is:inline />
   </head>
   <body>
+    <Header entry={entry} />
+
     <main class="mx-auto max-w-container px-4 py-12">
+      <Breadcrumbs url={entry.url} />
+
       <p class="text-sm text-text-muted mb-2">
         Template: <strong>{template}</strong> · Phase {entry.phase} · Cluster: {entry.cluster} · {entry.page_type}
       </p>
@@ -39,14 +69,14 @@ const canonical = new URL(entry.url, "https://boxhauls.com").toString();
 
       <section class="mb-8">
         <h2 class="text-lg font-semibold mb-2">Links to</h2>
-        <ul class="list-disc pl-5 space-y-1">
-          {entry.links_to.map((href) => (
-            <li><a class="text-accent underline" href={href}>{href}</a></li>
-          ))}
-        </ul>
+        <BodyLinks links={entry.links_to} />
       </section>
 
       <slot />
+
+      <RelatedLinks entry={entry} />
     </main>
+
+    <Footer entry={entry} />
   </body>
 </html>
