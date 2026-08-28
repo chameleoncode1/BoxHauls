@@ -11,6 +11,7 @@
 import "../styles/global.css";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
+import Analytics from "../components/Analytics.astro";
 import BookingWidget from "../components/BookingWidget.tsx";
 import { getBookingWidgetProps } from "../lib/bookingWidgetProps";
 import type { SitemapEntry } from "../lib/sitemap";
@@ -46,6 +47,7 @@ const entry: SitemapEntry = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Book a haul | BoxHauls</title>
     <meta name="robots" content="noindex, nofollow" />
+    <Analytics />
   </head>
   <body>
     <Header entry={entry} />

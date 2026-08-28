@@ -23,6 +23,23 @@ function isTierSlug(value: string): value is TierSlug {
   return (TIER_SLUGS as readonly string[]).includes(value);
 }
 
+/** window.trackBoxHaulsEvent is defined by src/components/Analytics.astro
+ * on every page this widget can mount on (BaseLayout for /, book.astro
+ * directly for /book/) — logs to console in local dev until
+ * GA4_MEASUREMENT_ID is resolved, real gtag calls after. Guarded here
+ * since this file also runs in the SSR pass, where window doesn't exist. */
+function trackEvent(name: string, params?: Record<string, unknown>) {
+  if (typeof window !== "undefined" && typeof window.trackBoxHaulsEvent === "function") {
+    window.trackBoxHaulsEvent(name, params);
+  }
+}
+
+declare global {
+  interface Window {
+    trackBoxHaulsEvent?: (name: string, params?: Record<string, unknown>) => void;
+  }
+}
+
 /**
  * Rider booking widget (kickoff Prompt 5). No legacy Lovable component
  * exists in ./legacy/ to port from, so this is a UI stub: real address
@@ -81,6 +98,14 @@ export default function BookingWidget({
     return calculatePrice(pricing, distance, { helper, heavy: Boolean(selectedItem?.heavy) });
   }, [showPrice, pickup, dropoff, helper, selectedItem, pricing]);
 
+  // Fires once per time a price first becomes visible (not on every
+  // keystroke afterward, e.g. toggling the helper checkbox) — map §12's
+  // price_shown event.
+  useEffect(() => {
+    if (showPrice) trackEvent("price_shown", { item: item || undefined, tier });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPrice]);
+
   function handleItemChange(slug: string) {
     setItem(slug);
     if (!tierTouched) {
@@ -99,6 +124,7 @@ export default function BookingWidget({
       className="rounded-lg border border-border bg-surface p-6 space-y-5"
       onSubmit={(e) => {
         e.preventDefault();
+        trackEvent("booking_started", { item: item || undefined, tier, helper, total: breakdown?.total });
         setSubmitted(true);
       }}
     >
