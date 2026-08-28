@@ -1,6 +1,6 @@
 # Progress
 
-## Status: kickoff Prompts 1-5 complete — full Phase-1 site + booking widget
+## Status: kickoff Prompts 1-5 complete — full Phase-1 site + booking widget + all of Phase 2 (194/194 non-Phase-3 pages built, 0 QA failures, 0 broken links, 0 type errors)
 
 ## What shipped
 
@@ -48,8 +48,16 @@ One flagged, unresolved: the `x` (Twitter) social handle in `placeholders.json` 
 | Remaining service spokes | 21 | furniture-delivery (thrift, estate-sale), small-moves (senior downsizing, small office, last-minute, in-building), appliance-delivery (dishwasher/range, water heater, freezer), junk-removal (yard waste, construction debris, e-waste, hot tub, estate cleanout, donation drop-off), and the new business-hauling hub + 5 spokes (pallet/bulk, jobsite material, property-manager turnovers, retail last-mile, restaurant/office equipment) |
 | Guides | 31 | All 30 remaining guide spokes (fit, howto, decision, marketplace, retail, local, scenario, trust) plus the `/guides/` hub, which resolved 4 pre-existing click-distance failures once it existed to link everything |
 | Compare | 13 | The `/compare/` hub plus all 12 spokes, built from live competitor research (see below) rather than assumption |
+| Partners | 8 | Hub, 5 vertical spokes, directory (honest empty state — no partnerships exist yet), apply page |
+| Driver compare + guides | 8 | Driver-side GoShare/Lugg/Dolly comparison, 4 driver guides, best trucks / ratings & tips / taxes |
+
+**Phase 2 is now fully built: 119/119 pages, 0 QA failures.**
 
 **Compare cluster — researched, not invented.** A background agent researched all 7 app-based competitors and 3 general categories live (dated August 2026) before any page was written, per CLAUDE.md rule #2. Findings that changed how pages were written: **Lugg doesn't serve Fresno/Clovis** (its "Fresno" pages are for Fresno, TX); **Dolly is mid-rebrand to "Taskrabbit Delivery"** with unconfirmed local coverage; **Bungii's consumer app was discontinued in 2024** and it's now B2B-only, so that page says plainly you can no longer book it as an individual rather than forcing a fake head-to-head; **Curri is a construction-supply logistics platform** with no consumer moving use case at all, same honest treatment. **GoShare is the one confirmed local app competitor** (dedicated Fresno and Clovis pages), so it's the only genuine apples-to-apples comparison in the app cluster. Also fixed a pre-existing title-formula bug (`src/lib/meta.ts`) where the `/compare/` hub rendered as "BoxHauls vs. Compare" instead of its own H1 — only surfaced once the hub had real content.
+
+**Driver-side compare, same honesty standard.** None of GoShare, Lugg, or Dolly publish an exact driver payout percentage — the page says so plainly rather than guessing, while BoxHauls's own [[DRIVER_SHARE]]% is stated (appearing only under `/drive/`, per CLAUDE.md's audience-isolation rule). The `/drive/taxes/` page deliberately avoids quoting a specific IRS mileage rate, since that number changes and would go stale — it points to irs.gov and a tax professional instead.
+
+**A script bug surfaced by real content, not introduced by it:** the 4 new driver guides use the `guide` template, not `driver` — `scripts/qa.mjs`'s audience-isolation check keys off `entry.template === "driver"`, so these pages were being evaluated as rider pages for that specific check. Fixed by keeping every in-body `/drive/` link within each page's own declared `links_to` (the check's existing, correct escape hatch) rather than changing the script — the simpler, lower-risk fix.
 
 Each sub-cluster: written, hub pages updated to link every child, `npm run qa` / `npm run links` / `astro check` run clean, visual spot-check in the dev server, committed separately.
 
@@ -57,5 +65,5 @@ Each sub-cluster: written, hub pages updated to link every child, `npm run qa` /
 
 - **Real booking backend**: geocoding/routing, driver matching, payment processing — the widget is a UI stub with mock pricing, by design (kickoff Prompt 5's own instruction, no legacy component existed to port).
 - **`GA4_MEASUREMENT_ID`**: still `TODO` — analytics events fire to the console in dev but nowhere real until this is resolved.
-- **Rest of Phase 2**: `/compare/` cluster (13 pages, needs real competitor research), guides batches (32 pages), `/partners/` (8 pages), driver compare + guides (8 pages), Spanish `/es/` for `/drive/` and core pages. Routes already build as stubs; no real content yet.
-- **Phase 3** (10 pages): real-trip pricing data page, neighborhood pages (Clovis first, gated), seasonal guides, second metro.
+- **Spanish `/es/`** for `/drive/` and core pages — deliberately not scaffolded; `/es/drive/*` isn't in `docs/sitemap.json`, and CLAUDE.md hard rule #1 means routes come from the sitemap via `build_map.py`, not hand-created.
+- **Phase 3** (10 pages): real-trip pricing data page, neighborhood pages (Clovis first, gated), seasonal guides, second metro. Routes already build as stubs; no real content yet.
