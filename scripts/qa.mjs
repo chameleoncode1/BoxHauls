@@ -294,10 +294,16 @@ const table = results.map((r) => ({
 }));
 console.table(table);
 
-const failing = results.filter((r) => r.failures.length > 0 || r.warnings.length > 0);
-if (failing.length) {
-  console.log(`\n${failing.length} page(s) with failures or warnings:\n`);
-  for (const r of failing) {
+// "failing" = blocks the gate (has a real failure). "noteworthy" = worth
+// printing detail for, whether or not it blocks (a warning-only page has
+// nothing to fix, just something to be aware of) — these are NOT the same
+// set, and conflating them previously made the exit code fail on warnings
+// alone.
+const failing = results.filter((r) => r.failures.length > 0);
+const noteworthy = results.filter((r) => r.failures.length > 0 || r.warnings.length > 0);
+if (noteworthy.length) {
+  console.log(`\n${noteworthy.length} page(s) with failures or warnings:\n`);
+  for (const r of noteworthy) {
     console.log(`${r.url}`);
     for (const f of r.failures) console.log(`  FAIL  ${f}`);
     for (const w of r.warnings) console.log(`  warn  ${w}`);
