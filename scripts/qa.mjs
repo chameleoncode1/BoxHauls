@@ -294,9 +294,9 @@ const table = results.map((r) => ({
 }));
 console.table(table);
 
-const failing = results.filter((r) => r.failures.length > 0);
+const failing = results.filter((r) => r.failures.length > 0 || r.warnings.length > 0);
 if (failing.length) {
-  console.log(`\n${failing.length} page(s) with failures:\n`);
+  console.log(`\n${failing.length} page(s) with failures or warnings:\n`);
   for (const r of failing) {
     console.log(`${r.url}`);
     for (const f of r.failures) console.log(`  FAIL  ${f}`);
