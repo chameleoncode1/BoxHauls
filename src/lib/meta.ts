@@ -54,6 +54,7 @@ function deriveTitle(entry: SitemapEntry): string {
       return substitute("Truck & Driver On Demand in {{METRO}} | BoxHauls", entry.url);
 
     case "compare": {
+      if (entry.page_type === "hub") return `${h1} | BoxHauls`;
       const competitor = titleCase(lastSegment(entry.url).replace(/^boxhauls-vs-/, ""));
       return substitute(`BoxHauls vs. ${competitor}: Price, Coverage, Insurance ({{YEAR}})`, entry.url);
     }
