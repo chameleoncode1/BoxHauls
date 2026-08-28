@@ -1,24 +1,33 @@
 /*
   Design tokens — the only file allowed to define color, type-scale,
-  radius, and spacing values (CLAUDE.md). Branding is not decided yet:
-  this is a neutral, high-contrast placeholder palette. Swap values
-  here, once, when the real palette is chosen — nothing else in the
-  project may hard-code a color.
+  radius, and spacing values (CLAUDE.md). Red / white / black, sampled
+  directly from src/assets/logo.png (the real brand logo) rather than
+  guessed: red rgb(206,7,24) / #ce0718, near-black rgb(12-19,...) /
+  #111111. Swap values here, once, if the palette changes — nothing else
+  in the project may hard-code a color.
 */
 
 :root {
   /* Color */
   --color-bg: #ffffff;
-  --color-surface: #f4f4f5;
-  --color-border: #d4d4d8;
-  --color-text: #18181b;
+  --color-surface: #f5f5f5;
+  --color-border: #e0e0e0;
+  --color-text: #111111;
   --color-text-muted: #52525b;
 
-  --color-primary: #18181b;
+  --color-primary: #111111;
   --color-primary-foreground: #ffffff;
 
-  --color-accent: #2563eb;
+  --color-accent: #ce0718;
   --color-accent-foreground: #ffffff;
+  --color-accent-hover: #a8050f;
+
+  /* Dark UI sections (footer) — black with white/red text, matching the
+     logo's own black+red banner treatment. */
+  --color-inverse-bg: #111111;
+  --color-inverse-text: #ffffff;
+  --color-inverse-text-muted: #a1a1aa;
+  --color-inverse-border: #2a2a2a;
 
   --color-success: #15803d;
   --color-danger: #b91c1c;

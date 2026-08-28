@@ -5,10 +5,11 @@
 // Header/footer, breadcrumbs, JSON-LD, and linking are structural and
 // render the same either way.
 import "../styles/global.css";
-import { substitute } from "../lib/placeholders";
+import { substitute, substituteBrackets } from "../lib/placeholders";
 import { getMeta } from "../lib/meta";
-import { buildSchema } from "../lib/schema";
+import { buildSchema, type SchemaContent } from "../lib/schema";
 import { getPageContent } from "../lib/content";
+import { renderInlineMarkdown } from "../lib/markdown";
 import type { SitemapEntry } from "../lib/sitemap";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -28,9 +29,27 @@ const contentBlocks = substitute(entry.content_blocks, entry.url);
 const canonical = new URL(entry.url, "https://boxhauls.com").toString();
 const meta = getMeta(entry);
 const pageContent = await getPageContent(entry.url);
-const schema = buildSchema(entry, pageContent?.entry.data);
 const { Content } = pageContent ?? {};
-const data = pageContent?.entry.data;
+
+// Frontmatter (faqs/howToSteps/author) is plain YAML, not run through
+// the MDX/remark pipeline, so [[TOKENS]] in it are never substituted
+// there — resolve it once here for both display and the JSON-LD below,
+// so the two can't disagree (map §9 rule 7: FAQPage schema must mirror
+// the on-page text exactly).
+const rawData = pageContent?.entry.data;
+const data: SchemaContent | undefined = rawData && {
+  faqs: rawData.faqs?.map((f) => ({
+    question: substituteBrackets(f.question, entry.url),
+    answer: substituteBrackets(f.answer, entry.url),
+  })),
+  howToSteps: rawData.howToSteps?.map((s) => ({
+    name: substituteBrackets(s.name, entry.url),
+    text: substituteBrackets(s.text, entry.url),
+  })),
+  author: rawData.author ? substituteBrackets(rawData.author, entry.url) : undefined,
+  updated: rawData.updated,
+};
+const schema = buildSchema(entry, data);
 ---
 
 <html lang="en">
@@ -40,6 +59,7 @@ const data = pageContent?.entry.data;
     <title>{meta.title}</title>
     <meta name="description" content={meta.description} />
     <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="BoxHauls" />
@@ -75,7 +95,7 @@ const data = pageContent?.entry.data;
               <ol class="list-decimal pl-5 space-y-3">
                 {data.howToSteps.map((step) => (
                   <li>
-                    <strong>{step.name}</strong> — {step.text}
+                    <strong set:html={renderInlineMarkdown(step.name)} /> — <span set:html={renderInlineMarkdown(step.text)} />
                   </li>
                 ))}
               </ol>
@@ -88,8 +108,8 @@ const data = pageContent?.entry.data;
               <div class="space-y-6">
                 {data.faqs.map((faq) => (
                   <div>
-                    <h3 class="font-semibold mb-1">{faq.question}</h3>
-                    <p class="text-text-muted">{faq.answer}</p>
+                    <h3 class="font-semibold mb-1" set:html={renderInlineMarkdown(faq.question)} />
+                    <p class="text-text-muted" set:html={renderInlineMarkdown(faq.answer)} />
                   </div>
                 ))}
               </div>
@@ -98,7 +118,7 @@ const data = pageContent?.entry.data;
 
           {(data?.author || data?.updated) && (
             <p class="text-sm text-text-muted mb-8">
-              {data?.author && substitute(data.author, entry.url)}
+              {data?.author}
               {data?.author && data?.updated && " · "}
               {data?.updated && `Facts checked ${data.updated}`}
             </p>

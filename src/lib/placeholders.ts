@@ -84,3 +84,22 @@ export function substitute(text: string, pageUrl: string): string {
     return raw;
   });
 }
+
+const BRACKET_TOKEN_RE = /\[\[([A-Za-z0-9_.-]+)\]\]/g;
+
+/**
+ * Same as substitute(), but for [[KEY]] rather than {{KEY}} — the
+ * delimiter used in MDX content (src/content/pages) and its frontmatter
+ * (faqs, howToSteps, author), since MDX reserves {curly braces} for JS
+ * expressions (see src/lib/remarkSubstitutePlaceholders.ts for the full
+ * explanation). Frontmatter is plain YAML — not parsed as MDX/JSX — but
+ * uses the same [[KEY]] delimiter for consistency with the body text
+ * around it, and because it isn't run through the remark pipeline at
+ * all (it's read directly as data by src/layouts/BaseLayout.astro and
+ * src/lib/schema.ts), so it needs this explicit substitution call
+ * wherever it's rendered or fed into JSON-LD.
+ */
+export function substituteBrackets(text: string, pageUrl: string): string {
+  const asDoubleCurly = text.replace(BRACKET_TOKEN_RE, (_match, key: string) => `{{${key}}}`);
+  return substitute(asDoubleCurly, pageUrl);
+}

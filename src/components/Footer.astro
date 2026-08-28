@@ -6,6 +6,15 @@
 // driver pages linking to /services/ or /pricing/, and the rider footer
 // is exactly that list, so it can't be reused as-is for the /drive/
 // audience.
+//
+// Black background with white/red text — matches the logo's own
+// black+red banner treatment (src/assets/logo.png). Text-only wordmark
+// here rather than the icon: the icon PNG has an opaque white
+// background baked in (its box-face and chrome-highlight elements are
+// the same near-white as the true background, so they can't be reliably
+// separated into transparency), which would show as an ugly white box
+// on this dark footer. The header uses the icon on its light background,
+// where that's a non-issue.
 import type { SitemapEntry } from "../lib/sitemap";
 import { substitute } from "../lib/placeholders";
 
@@ -46,18 +55,22 @@ const links = isDriver ? driverLinks : riderLinks;
 const nap = substitute("{{LEGAL_NAME}} · {{ADDRESS}} · {{PHONE}}", entry.url);
 ---
 
-<footer class="border-t border-border mt-16">
+<footer class="mt-16 bg-inverse-bg text-inverse-text">
   <div class="mx-auto max-w-container px-4 py-12">
+    <a href="/" class="inline-block font-extrabold text-lg tracking-tight mb-8">
+      <span class="text-inverse-text">Box</span><span class="text-accent">Hauls</span>
+    </a>
+
     <nav aria-label="Footer" class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 mb-8 text-sm">
       {links.map(([href, label]) => (
-        <a class="underline" href={href}>{label}</a>
+        <a class="text-inverse-text-muted hover:text-accent" href={href}>{label}</a>
       ))}
     </nav>
 
-    <div class="text-sm text-text-muted space-y-2">
+    <div class="border-t border-inverse-border pt-6 text-sm text-inverse-text-muted space-y-2">
       <p>{nap}</p>
       <p>
-        <a class="underline" href="/app/">Get the app</a>
+        <a class="text-accent hover:text-inverse-text" href="/app/">Get the app</a>
       </p>
     </div>
   </div>

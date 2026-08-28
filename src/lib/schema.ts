@@ -1,6 +1,7 @@
 import type { SitemapEntry } from "./sitemap";
 import { getBreadcrumbs } from "./breadcrumbs";
 import { substitute, getFlatPlaceholders, isResolvedValue } from "./placeholders";
+import { stripInlineMarkdown } from "./markdown";
 
 const ORG_ID = "https://boxhauls.com/#organization";
 const SITE_URL = "https://boxhauls.com";
@@ -162,8 +163,8 @@ function buildFaqPage(faqs: { question: string; answer: string }[]): Node {
     "@type": "FAQPage",
     mainEntity: faqs.map((f) => ({
       "@type": "Question",
-      name: f.question,
-      acceptedAnswer: { "@type": "Answer", text: f.answer },
+      name: stripInlineMarkdown(f.question),
+      acceptedAnswer: { "@type": "Answer", text: stripInlineMarkdown(f.answer) },
     })),
   };
 }
@@ -172,7 +173,11 @@ function buildHowTo(entry: SitemapEntry, steps: { name: string; text: string }[]
   return {
     "@type": "HowTo",
     name: substitute(entry.h1, entry.url),
-    step: steps.map((s) => ({ "@type": "HowToStep", name: s.name, text: s.text })),
+    step: steps.map((s) => ({
+      "@type": "HowToStep",
+      name: stripInlineMarkdown(s.name),
+      text: stripInlineMarkdown(s.text),
+    })),
   };
 }
 
@@ -186,7 +191,7 @@ function buildArticle(entry: SitemapEntry, author: string | undefined, updated: 
   // interim "BoxHauls team, reviewed by X" credit isn't a schema.org
   // Person, so it's recorded as plain text via creditText rather than a
   // fabricated Person node.
-  if (author) node.creditText = substitute(author, entry.url);
+  if (author) node.creditText = author;
   if (updated) {
     node.datePublished = updated;
     node.dateModified = updated;

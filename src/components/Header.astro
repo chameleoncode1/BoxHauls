@@ -4,6 +4,12 @@
 // header on rider pages (footer only, map §2). Driver-template pages get
 // a single "For customers" link back to / instead of the rider nav —
 // audience isolation is structural, not a copy choice.
+//
+// Wordmark is real text (not baked into the logo image) — two-tone
+// black/red matching src/assets/logo.png, but crisp at any size and
+// readable by screen readers/search engines without alt-text tricks.
+import { Image } from "astro:assets";
+import logoIcon from "../assets/logo-icon.png";
 import type { SitemapEntry } from "../lib/sitemap";
 
 interface Props {
@@ -22,34 +28,44 @@ const serviceHubs = [
 ] as const;
 ---
 
-<header class="border-b border-border">
-  <div class="mx-auto max-w-container px-4 py-4 flex items-center justify-between gap-4">
-    <a href="/" class="font-bold text-lg text-text">BoxHauls</a>
+<header class="border-b-2 border-accent">
+  <div class="mx-auto max-w-container px-4 py-3 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-2 shrink-0">
+      <Image src={logoIcon} alt="" width={40} height={25} class="h-9 w-auto" />
+      <span class="font-extrabold text-xl tracking-tight">
+        <span class="text-text">Box</span><span class="text-accent">Hauls</span>
+      </span>
+    </a>
 
     {isDriver ? (
-      <a class="text-sm underline" href="/">For customers</a>
+      <a class="text-sm font-semibold underline decoration-accent" href="/">For customers</a>
     ) : (
-      <nav aria-label="Primary" class="hidden md:flex items-center gap-6 text-sm">
-        <a href="/pricing/">Pricing</a>
+      <nav aria-label="Primary" class="hidden md:flex items-center gap-6 text-sm font-medium">
+        <a class="hover:text-accent" href="/pricing/">Pricing</a>
 
         <div class="relative group">
-          <button type="button" class="inline-flex items-center gap-1" aria-haspopup="true">
+          <button type="button" class="inline-flex items-center gap-1 hover:text-accent" aria-haspopup="true">
             Services
           </button>
           <ul
-            class="absolute left-0 top-full hidden group-hover:block group-focus-within:block bg-bg border border-border rounded-md p-2 min-w-[16rem] shadow-sm z-10"
+            class="absolute left-0 top-full hidden group-hover:block group-focus-within:block bg-bg border border-border rounded-md p-2 min-w-[16rem] shadow-md z-10"
           >
             {serviceHubs.map(([href, label]) => (
               <li>
-                <a class="block px-2 py-1.5 rounded-sm hover:bg-surface" href={href}>{label}</a>
+                <a class="block px-2 py-1.5 rounded-sm hover:bg-surface hover:text-accent" href={href}>{label}</a>
               </li>
             ))}
           </ul>
         </div>
 
-        <a href="/how-it-works/">How it works</a>
-        <a href="/trust/">Trust</a>
-        <a href="/app/">Get the app</a>
+        <a class="hover:text-accent" href="/how-it-works/">How it works</a>
+        <a class="hover:text-accent" href="/trust/">Trust</a>
+        <a
+          class="rounded-md bg-accent px-4 py-2 text-accent-foreground hover:bg-accent-hover"
+          href="/app/"
+        >
+          Get the app
+        </a>
       </nav>
     )}
   </div>

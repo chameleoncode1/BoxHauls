@@ -59,8 +59,11 @@ function buildSvg(title: string): string {
     .join("");
 
   return `<svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${WIDTH}" height="${HEIGHT}" fill="#18181b"/>
-    <text x="80" y="120" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#ffffff">BoxHauls</text>
+    <rect width="${WIDTH}" height="${HEIGHT}" fill="#111111"/>
+    <rect width="${WIDTH}" height="10" fill="#ce0718"/>
+    <text x="80" y="120" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="34" font-weight="800">
+      <tspan fill="#ffffff">Box</tspan><tspan fill="#ce0718">Hauls</tspan>
+    </text>
     <text font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="56" font-weight="700" fill="#ffffff">${tspans}</text>
     <text x="80" y="${HEIGHT - 60}" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="26" fill="#a1a1aa">boxhauls.com</text>
   </svg>`;
