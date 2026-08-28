@@ -505,7 +505,7 @@ Clusters: **fit** (dimension tables — the information-gain cluster nobody else
 
 | URL | H1 | Primary query | Links to | Phase |
 |---|---|---|---|---|
-| /guides/ | Guides: moving big stuff without owning a truck | how to move furniture without a truck | /guides/will-it-fit-in-a-pickup-bed/, /guides/how-to-move-a-couch-without-a-truck/ | 2 |
+| /guides/ | Guides: moving big stuff without owning a truck | how to move furniture without a truck | /guides/will-it-fit-in-a-pickup-bed/, /guides/how-to-move-a-couch-without-a-truck/, /guides/renting-a-truck-vs-hiring-a-truck-and-driver/, /guides/what-to-expect-from-a-boxhauls-driver/, /guides/how-to-get-a-facebook-marketplace-purchase-home/, /guides/dump-fees-in-{{metro-slug}}/, /guides/bulky-item-pickup-in-{{metro-slug}}/, /guides/what-to-do-if-an-item-is-damaged/ | 2 |
 | /guides/will-it-fit-in-a-pickup-bed/ | Will it fit in a pickup bed? Dimensions for 40 common items | will a couch fit in a truck bed | /guides/, /pricing/truck-sizes/ | 1 |
 | /guides/will-a-sectional-fit-in-a-pickup/ | Will a sectional fit in a pickup truck? | sectional fit in truck bed | /guides/, /pricing/cost-to-move-a-sectional/ | 2 |
 | /guides/will-a-king-mattress-fit-in-a-pickup/ | Will a king mattress fit in a pickup truck? | king mattress fit in truck bed | /guides/, /pricing/cost-to-move-a-mattress/ | 2 |
@@ -548,7 +548,7 @@ Clusters: **fit** (dimension tables — the information-gain cluster nobody else
 | /guides/apartment-turnover-in-48-hours/ | Property managers: turning a unit in 48 hours | apartment turnover checklist | /guides/, /services/business-hauling/property-manager-turnovers/ | 3 |
 | /guides/moving-out-of-a-dorm-in-one-trip/ | Moving out of a dorm in one trip | dorm move out tips | /guides/, /services/small-moves/dorm-move/ | 2 |
 | /guides/what-to-do-if-an-item-is-damaged/ | What to do if an item is damaged in delivery | furniture damaged during delivery what to do | /guides/, /trust/damage-claims/ | 1 |
-| /guides/delivery-insurance-explained/ | Delivery insurance explained: cargo vs. liability | does delivery insurance cover furniture | /guides/, /trust/insurance/ | 2 |
+| /guides/delivery-insurance-explained/ | Delivery insurance explained: what's covered vs. what isn't | does delivery insurance cover furniture | /guides/, /trust/insurance/ | 2 |
 | /guides/spring-cleanout-checklist/ | Spring cleanout checklist | spring garage cleanout checklist | /guides/, /services/junk-removal/garage-cleanout/ | 3 |
 | /guides/holiday-furniture-delivery-tips/ | Holiday furniture delivery: getting it there before guests arrive | furniture delivery before christmas | /guides/, /services/furniture-delivery/ | 3 |
 | /guides/college-move-out-week/ | College move-out week: booking ahead | when to book movers for college move out | /guides/, /services/small-moves/dorm-move/ | 3 |

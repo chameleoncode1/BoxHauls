@@ -296,9 +296,11 @@ for slug, name, q in [
       "compare", "spoke", 2, "compare")
 
 # ------------------------------------------------------------- GUIDES
-P("/guides/", "Guides: moving big stuff without owning a truck", "how to move furniture without a truck",
-  ["moving guides", "how to haul furniture"], ["/guides/will-it-fit-in-a-pickup-bed/", "/guides/how-to-move-a-couch-without-a-truck/"], ORG,
-  "Index grouped by cluster with one-line summaries.", "guides", "hub", 2, "guide")
+# GUIDES is defined before the /guides/ hub page below so the hub's
+# links_to can be derived from it directly (every hub links to every one
+# of its spokes, map §10 — matching the pattern used by the 5 service
+# hubs) instead of a hand-maintained list that silently falls out of sync
+# as guides are added.
 GUIDES = [
   # Fit & capacity (information-gain cluster)
   ("will-it-fit-in-a-pickup-bed", "Will it fit in a pickup bed? Dimensions for 40 common items", "will a couch fit in a truck bed", "/pricing/truck-sizes/", "fit", 1),
@@ -350,12 +352,21 @@ GUIDES = [
   ("moving-out-of-a-dorm-in-one-trip", "Moving out of a dorm in one trip", "dorm move out tips", "/services/small-moves/dorm-move/", "scenario", 2),
   # Safety / trust
   ("what-to-do-if-an-item-is-damaged", "What to do if an item is damaged in delivery", "furniture damaged during delivery what to do", "/trust/damage-claims/", "trust", 1),
-  ("delivery-insurance-explained", "Delivery insurance explained: cargo vs. liability", "does delivery insurance cover furniture", "/trust/insurance/", "trust", 2),
+  ("delivery-insurance-explained", "Delivery insurance explained: what's covered vs. what isn't", "does delivery insurance cover furniture", "/trust/insurance/", "trust", 2),
   # Seasonal (rotating)
   ("spring-cleanout-checklist", "Spring cleanout checklist", "spring garage cleanout checklist", "/services/junk-removal/garage-cleanout/", "seasonal", 3),
   ("holiday-furniture-delivery-tips", "Holiday furniture delivery: getting it there before guests arrive", "furniture delivery before christmas", "/services/furniture-delivery/", "seasonal", 3),
   ("college-move-out-week", "College move-out week: booking ahead", "when to book movers for college move out", "/services/small-moves/dorm-move/", "seasonal", 3),
 ]
+
+# The hub links to every Phase-1 spoke now; Phase-2/3 guides are added to
+# this list as their cluster is worked on (CLAUDE.md: don't build Phase-2
+# pages, including this hub's links to them, before Phase-1 QA passes).
+_phase1_guide_links = [f"/guides/{slug}/" for slug, h1, q, feeds, cl, ph in GUIDES if ph == 1]
+P("/guides/", "Guides: moving big stuff without owning a truck", "how to move furniture without a truck",
+  ["moving guides", "how to haul furniture"], _phase1_guide_links, ORG,
+  "Index grouped by cluster with one-line summaries.", "guides", "hub", 2, "guide")
+
 for slug, h1, q, feeds, cl, ph in GUIDES:
     P(f"/guides/{slug}/", h1, q, [], ["/guides/", feeds], ["Article", "Person", "BreadcrumbList"] + (["HowTo"] if cl == "howto" else []),
       f"Cluster: {cl}. Answer in sentence one; named author with bio; real photos; consistent dimension/weight/price tables; exactly one descriptive-anchor link into {feeds}; 3 FAQs.",
@@ -408,7 +419,7 @@ P(PR, "Offer BoxHauls delivery at your store", "offer delivery to customers with
   "How it works at checkout (QR / link / staff booking); what the customer pays; what the store gets (sales, no fleet); real partner logos only; apply. NO reciprocal-link language, no badges-for-links.",
   "partners", "hub", 2, "partners")
 for s, h1, q in [
-    ("for-furniture-stores", "For furniture and mattress stores", "furniture store delivery solution"),
+    ("for-furniture-stores", "For furniture and mattress stores", "furniture store delivery partner"),
     ("for-appliance-dealers", "For appliance dealers", "appliance store delivery partner"),
     ("for-property-managers", "For property managers", "property management hauling partner"),
     ("for-contractors-and-suppliers", "For contractors and supply houses", "supply house delivery partner"),

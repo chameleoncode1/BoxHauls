@@ -2881,7 +2881,13 @@
       ],
       "links_to": [
         "/guides/will-it-fit-in-a-pickup-bed/",
-        "/guides/how-to-move-a-couch-without-a-truck/"
+        "/guides/how-to-move-a-couch-without-a-truck/",
+        "/guides/renting-a-truck-vs-hiring-a-truck-and-driver/",
+        "/guides/what-to-expect-from-a-boxhauls-driver/",
+        "/guides/how-to-get-a-facebook-marketplace-purchase-home/",
+        "/guides/dump-fees-in-{{metro-slug}}/",
+        "/guides/bulky-item-pickup-in-{{metro-slug}}/",
+        "/guides/what-to-do-if-an-item-is-damaged/"
       ],
       "schema": [
         "Organization",
@@ -3745,7 +3751,7 @@
     },
     {
       "url": "/guides/delivery-insurance-explained/",
-      "h1": "Delivery insurance explained: cargo vs. liability",
+      "h1": "Delivery insurance explained: what's covered vs. what isn't",
       "primary_query": "does delivery insurance cover furniture",
       "secondary_queries": [],
       "links_to": [
@@ -4238,7 +4244,7 @@
     {
       "url": "/partners/for-furniture-stores/",
       "h1": "For furniture and mattress stores",
-      "primary_query": "furniture store delivery solution",
+      "primary_query": "furniture store delivery partner",
       "secondary_queries": [],
       "links_to": [
         "/partners/",

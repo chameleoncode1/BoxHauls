@@ -1,0 +1,38 @@
+---
+// GA4 stub (kickoff Prompt 3 item 6, map §12). Loads gtag.js only when a
+// real measurement ID exists in docs/placeholders.json — never ships a
+// tracking script pointed at a fake property ID.
+//
+// Always defines window.trackBoxHaulsEvent(name, params) for the six
+// named events: price_shown, booking_started, booking_completed,
+// driver_apply_started, driver_apply_completed, partner_apply. No caller
+// exists yet for most of these — the booking widget (kickoff Prompt 5)
+// and driver/partner apply forms wire them up once those UIs are built.
+// Until GA4_MEASUREMENT_ID is resolved, calls are logged to the console
+// in local dev and are silent in production, so callers can be wired up
+// now without waiting on the real property ID.
+import { getFlatPlaceholders, isResolvedValue } from "../lib/placeholders";
+
+const ph = getFlatPlaceholders();
+const measurementId = ph.GA4_MEASUREMENT_ID;
+const enabled = isResolvedValue(measurementId);
+---
+
+{enabled && <script async src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} is:inline></script>}
+<script define:vars={{ measurementId, enabled }} is:inline>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() {
+    window.dataLayer.push(arguments);
+  }
+  if (enabled) {
+    gtag("js", new Date());
+    gtag("config", measurementId);
+  }
+  window.trackBoxHaulsEvent = function (name, params) {
+    if (enabled) {
+      gtag("event", name, params || {});
+    } else if (window.location.hostname === "localhost") {
+      console.debug("[analytics stub]", name, params || {});
+    }
+  };
+</script>

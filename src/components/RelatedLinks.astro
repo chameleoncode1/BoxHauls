@@ -15,11 +15,23 @@ const { entry, max = 5 } = Astro.props;
 // generic Related module (it's already the top of the hierarchy), and
 // "/" is never offered as a suggested link on any other page.
 const isHome = entry.url === "/";
-const related = isHome
+
+// Pick neighbors relative to this page's own position in the cluster
+// (a ring, wrapping around), not a fixed slice(0, max) — a fixed prefix
+// would return the identical set for every page in the cluster, which
+// both defeats the point of "related" and means pages later in the
+// cluster's array order can never be suggested by anyone (an orphan risk
+// npm run qa's click-graph check catches).
+const clusterPages = getResolvedCluster(entry.cluster).filter((p) => p.url !== "/");
+const selfIndex = clusterPages.findIndex((p) => p.url === entry.url);
+
+const related = isHome || selfIndex === -1
   ? []
-  : getResolvedCluster(entry.cluster)
-      .filter((p) => p.url !== entry.url && p.url !== "/")
-      .slice(0, max);
+  : Array.from({ length: Math.min(max, clusterPages.length - 1) }, (_, i) => {
+      const offset = Math.ceil((i + 1) / 2) * (i % 2 === 0 ? 1 : -1); // +1, -1, +2, -2, +3, ...
+      const idx = (selfIndex + offset + clusterPages.length) % clusterPages.length;
+      return clusterPages[idx];
+    }).filter((p, i, arr) => arr.findIndex((q) => q.url === p.url) === i); // de-dupe on wraparound
 ---
 
 {related.length > 0 && (

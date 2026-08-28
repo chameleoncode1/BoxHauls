@@ -5,11 +5,11 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build && node scripts/write-todo.mjs",
+    "build": "astro build && node scripts/generate-static-files.mjs && node scripts/write-todo.mjs",
     "preview": "astro preview",
     "map": "python3 build_map.py",
-    "qa": "node scripts/qa.mjs",
-    "links": "node scripts/links.mjs"
+    "qa": "npm run build && node scripts/qa.mjs",
+    "links": "npm run build && node scripts/links.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.0.0",

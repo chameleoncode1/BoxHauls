@@ -15,6 +15,7 @@ import Footer from "../components/Footer.astro";
 import Breadcrumbs from "../components/Breadcrumbs.astro";
 import BodyLinks from "../components/BodyLinks.astro";
 import RelatedLinks from "../components/RelatedLinks.astro";
+import Analytics from "../components/Analytics.astro";
 
 interface Props {
   entry: SitemapEntry;
@@ -49,6 +50,7 @@ const schema = buildSchema(entry);
     <meta name="twitter:image" content={meta.ogImage} />
 
     <script type="application/ld+json" set:html={JSON.stringify(schema)} is:inline />
+    <Analytics />
   </head>
   <body>
     <Header entry={entry} />
@@ -62,10 +64,16 @@ const schema = buildSchema(entry);
 
       <h1 class="text-4xl font-bold leading-tight mb-6">{h1}</h1>
 
+      <!-- qa:ignore-start — this box quotes docs/sitemap.json's own
+           content_blocks planning text verbatim (e.g. "cargo insurance",
+           "not freight"), not authored copy. npm run qa excludes it from
+           the banned-phrase check for that reason; it disappears once
+           Prompt 4 replaces it with real prose. -->
       <section class="mb-8 rounded-md border border-border bg-surface p-4">
         <h2 class="text-lg font-semibold mb-2">Required content blocks</h2>
         <p class="text-text-muted whitespace-pre-wrap">{contentBlocks}</p>
       </section>
+      <!-- qa:ignore-end -->
 
       <section class="mb-8">
         <h2 class="text-lg font-semibold mb-2">Links to</h2>
