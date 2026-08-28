@@ -1,0 +1,63 @@
+---
+// Booking flow (kickoff Prompt 5 item 1). Deliberately NOT generated
+// from docs/sitemap.json, and deliberately not wrapped in BaseLayout —
+// the map's own §12 treats /book/ as app UI, not a landing page:
+// noindexed, disallowed in robots.txt, not part of the SEO route
+// inventory. BaseLayout's content-page machinery (breadcrumbs, the
+// content_blocks stub box, RelatedLinks pulling from a cluster) doesn't
+// fit a checkout-style page with no real content of its own — so this
+// reuses just Header/Footer for consistent branding and builds its own
+// minimal shell around the widget.
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import BookingWidget from "../components/BookingWidget.tsx";
+import { getBookingWidgetProps } from "../lib/bookingWidgetProps";
+import type { SitemapEntry } from "../lib/sitemap";
+
+// item/tier pre-fill (?item=couch&tier=tier-2) is NOT read here: this is
+// a static route, built once ahead of time, so Astro.url.searchParams
+// would always be empty regardless of what query string a visitor
+// actually loads with. BookingWidget reads it itself, client-side, from
+// the real browser URL — see its getQueryParam().
+const { pricing, tierNames, helperAvailabilityNote } = getBookingWidgetProps();
+
+// Minimal stand-in entry so Header/Footer (which key off template/url)
+// render the same rider chrome as everywhere else, without this being a
+// real sitemap page.
+const entry: SitemapEntry = {
+  url: "/book/",
+  h1: "Book a haul",
+  primary_query: "",
+  secondary_queries: [],
+  links_to: [],
+  schema: [],
+  content_blocks: "",
+  cluster: "core",
+  page_type: "utility",
+  phase: 1,
+  template: "home",
+};
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Book a haul | BoxHauls</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body>
+    <Header entry={entry} />
+    <main class="mx-auto max-w-container px-4 py-12 max-w-2xl">
+      <h1 class="text-3xl font-bold leading-tight mb-6">Book a haul</h1>
+      <BookingWidget
+        client:load
+        pricing={pricing}
+        tierNames={tierNames}
+        helperAvailabilityNote={helperAvailabilityNote}
+      />
+    </main>
+    <Footer entry={entry} />
+  </body>
+</html>

@@ -1,9 +1,19 @@
 ---
 ---
 
+import BookingWidget from "../../components/BookingWidget.tsx";
+import { getBookingWidgetProps } from "../../lib/bookingWidgetProps";
+
+export const bookingProps = getBookingWidgetProps();
+
 BoxHauls sends a local pickup-truck owner to your address in [[METRO]], ready to load, haul, and unload one or a few large items — with the price shown before you book, not after.
 
-{/* Booking widget (pickup, dropoff, item picker, tier, live price) mounts here as a React island — kickoff Prompt 5 */}
+<BookingWidget
+  client:load
+  pricing={bookingProps.pricing}
+  tierNames={bookingProps.tierNames}
+  helperAvailabilityNote={bookingProps.helperAvailabilityNote}
+/>
 
 Now serving [[METRO]] and [[NEIGHBORHOOD]], with drivers covering a [[RADIUS]]-mile radius.
 
