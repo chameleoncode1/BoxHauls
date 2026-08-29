@@ -34,7 +34,7 @@
   "NO_SHOW_POLICY": "TODO",
   "WEATHER_POLICY": "TODO",
   "REFUND_TIMING": "TODO",
-  "FOUNDING_YEAR": "TODO",
+  "FOUNDING_YEAR": "2026",
   "MARKETPLACE_PAYMENT_POLICY": "TODO",
   "SELLER_NO_SHOW_POLICY": "TODO",
   "DORM_MOVE_DATES": "TODO",
@@ -80,7 +80,7 @@
   "MIN_ACTIVE_DRIVERS": "15",
   "YEAR": "2026",
   "GA4_MEASUREMENT_ID": "TODO",
-  "FIRST_HAUL_PROMO": "TODO",
+  "FIRST_HAUL_PROMO": "New customers get 20% off their first haul, automatically applied when you sign up with an email and phone number that haven't been used on a BoxHauls account before. Once the discount is redeemed, pricing returns to the standard rate — and that email, that phone number, or any combination of the two becomes ineligible for the first-haul discount going forward.",
   "SOCIAL": {
     "instagram": "https://instagram.com/boxhauls1",
     "tiktok": "https://tiktok.com/@box.hauls",
