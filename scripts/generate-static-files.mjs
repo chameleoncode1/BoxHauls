@@ -104,9 +104,13 @@ for (const { from, to } of sitemapData.redirects) {
   redirectLines.push(`${fromPath} ${toPath} 301`);
 }
 
-redirectLines.push("");
-redirectLines.push("# www -> apex");
-redirectLines.push(`https://www.boxhauls.com/* ${SITE}/:splat 301`);
+// www -> apex is NOT written here: Cloudflare Pages' _redirects format only
+// accepts relative-path sources (no hostname), so a cross-host rule like
+// "https://www.boxhauls.com/* -> https://boxhauls.com/:splat" fails Cloudflare's
+// _redirects validation at deploy time ("Only relative URLs are allowed").
+// That redirect has to be a Cloudflare Redirect Rule at the zone level instead,
+// configured once both boxhauls.com and www.boxhauls.com are added as custom
+// domains on the Pages project — see docs/LAUNCH.md §1.
 
 fs.writeFileSync(path.join(distDir, "_redirects"), redirectLines.join("\n") + "\n");
 
