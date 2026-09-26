@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "boxhauls-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "boxhauls",
+      "database_id": "e24fc620-a307-4669-9e53-9a992aa534e1"
+    }
+  ],
+  // Public pricing constants, in cents. Must match docs/placeholders.json's
+  // BASE_FARE / PER_MILE / HELPER_FEE / HEAVY_FEE — kept as plain vars
+  // (not secrets) since these are shown to every visitor on the site anyway.
+  // If the business changes these values, update both places.
+  "vars": {
+    "BASE_FARE_CENTS": "1700",
+    "PER_MILE_CENTS": "310",
+    "HELPER_FEE_CENTS": "1700",
+    "HEAVY_FEE_CENTS": "1200"
+  }
+}

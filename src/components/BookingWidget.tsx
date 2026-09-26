@@ -1,12 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  ITEMS,
-  TIER_SLUGS,
-  calculatePrice,
-  mockDistanceMiles,
-  type PricingConfig,
-  type TierSlug,
-} from "../lib/mockPricing";
+import { useEffect, useState } from "react";
+import { ITEMS, TIER_SLUGS, type PriceBreakdown, type PricingConfig, type TierSlug } from "../lib/mockPricing";
+
+// Local dev (astro dev) talks to the api/ Worker's local `wrangler dev`
+// instance; production talks to the real deployed API on its own subdomain.
+// See api/src/routes/quote.ts for the endpoint this calls.
+const API_BASE_URL = import.meta.env.DEV ? "http://localhost:8787" : "https://api.boxhauls.com";
+
+interface QuoteResponse {
+  distanceMiles: number;
+  breakdown: {
+    baseFare: number;
+    mileageCost: number;
+    helperCost: number;
+    heavyCost: number;
+    total: number;
+  };
+}
+
+interface QuoteError {
+  error: string;
+}
 
 export interface BookingWidgetProps {
   pricing: PricingConfig;
@@ -41,14 +54,16 @@ declare global {
 }
 
 /**
- * Rider booking widget (kickoff Prompt 5). No legacy Lovable component
- * exists in ./legacy/ to port from, so this is a UI stub: real address
- * inputs, item and tier pickers, and a price display driven by a mock
- * pricing function (src/lib/mockPricing.ts) that reads resolved
- * placeholders.json values passed in as props. No driver cards, ETAs,
- * ratings, or revenue split anywhere in this flow (CLAUDE.md #3 / #7,
- * kickoff Prompt 5 item 1) — those don't belong on the rider side even
- * once real data exists, let alone in a stub.
+ * Rider booking widget (kickoff Prompt 5, pricing made real in the
+ * booking-backend Phase 1 build). Address inputs, item and tier pickers,
+ * and a price display driven by a real quote from the api/ Worker
+ * (POST /quote — real Google Maps geocoding and driving distance, real
+ * formula). Booking itself is still a preview: submitting shows a
+ * "preview of the booking flow" message rather than creating a real haul,
+ * since payment collection and driver matching don't exist yet. No driver
+ * cards, ETAs, ratings, or revenue split anywhere in this flow (CLAUDE.md
+ * #3 / #7) — those don't belong on the rider side even once real data
+ * exists, let alone in a stub.
  */
 export default function BookingWidget({
   pricing,
@@ -92,19 +107,60 @@ export default function BookingWidget({
   const selectedItem = ITEMS.find((i) => i.slug === item);
   const showPrice = pickup.trim().length > 0 && dropoff.trim().length > 0;
 
-  const breakdown = useMemo(() => {
-    if (!showPrice) return null;
-    const distance = mockDistanceMiles(pickup, dropoff);
-    return calculatePrice(pricing, distance, { helper, heavy: Boolean(selectedItem?.heavy) });
-  }, [showPrice, pickup, dropoff, helper, selectedItem, pricing]);
+  const [breakdown, setBreakdown] = useState<PriceBreakdown | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
 
-  // Fires once per time a price first becomes visible (not on every
-  // keystroke afterward, e.g. toggling the helper checkbox) — map §12's
-  // price_shown event.
+  // Real geocoded price from the api/ Worker, debounced so a quote isn't
+  // fired on every keystroke while an address is still being typed.
   useEffect(() => {
-    if (showPrice) trackEvent("price_shown", { item: item || undefined, tier });
+    if (!showPrice) {
+      setBreakdown(null);
+      setQuoteError(null);
+      return;
+    }
+    const heavy = Boolean(selectedItem?.heavy);
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setQuoteLoading(true);
+      setQuoteError(null);
+      fetch(`${API_BASE_URL}/quote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({ pickup, dropoff, tier, helper, heavy }),
+      })
+        .then(async (res) => {
+          const data = (await res.json()) as QuoteResponse | QuoteError;
+          if (!res.ok || "error" in data) {
+            throw new Error("error" in data ? data.error : "Could not calculate a price for these addresses.");
+          }
+          setBreakdown({
+            distanceMiles: data.distanceMiles,
+            baseFare: data.breakdown.baseFare,
+            mileageCost: data.breakdown.mileageCost,
+            helperCost: data.breakdown.helperCost,
+            heavyCost: data.breakdown.heavyCost,
+            total: data.breakdown.total,
+          });
+          trackEvent("price_shown", { item: item || undefined, tier });
+        })
+        .catch((err) => {
+          if (controller.signal.aborted) return;
+          setBreakdown(null);
+          setQuoteError(err instanceof Error ? err.message : "Could not calculate a price for these addresses.");
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setQuoteLoading(false);
+        });
+    }, 600);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showPrice]);
+  }, [showPrice, pickup, dropoff, tier, helper, selectedItem]);
 
   function handleItemChange(slug: string) {
     setItem(slug);
@@ -202,6 +258,18 @@ export default function BookingWidget({
         </label>
       </div>
 
+      {showPrice && quoteLoading && !breakdown && (
+        <p className="text-sm text-text-muted" role="status">
+          Checking addresses...
+        </p>
+      )}
+
+      {showPrice && quoteError && (
+        <p className="text-sm text-red-600" role="alert">
+          {quoteError}
+        </p>
+      )}
+
       {showPrice && breakdown && (
         <div className="rounded-md border border-border bg-bg p-4 text-sm space-y-1">
           <div className="flex justify-between">
@@ -209,7 +277,7 @@ export default function BookingWidget({
             <span>{formatDollars(breakdown.baseFare)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-text-muted">Mileage (est.)</span>
+            <span className="text-text-muted">Mileage</span>
             <span>{formatDollars(breakdown.mileageCost)}</span>
           </div>
           {breakdown.heavyCost > 0 && (
@@ -237,7 +305,7 @@ export default function BookingWidget({
 
       <button
         type="submit"
-        disabled={!showPrice}
+        disabled={!showPrice || !breakdown || quoteLoading}
         className="w-full rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Book this haul

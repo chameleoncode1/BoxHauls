@@ -6,3 +6,5 @@ dist/
 !.env.example
 npm-debug.log*
 .DS_Store
+.wrangler/
+.dev.vars
