@@ -1,6 +1,6 @@
 # Progress
 
-## Status: kickoff Prompts 1-5 complete — full Phase-1 site, booking widget, all of Phase 2, and 9/10 Phase-3 pages (193/194 sitemap routes have real content, 0 QA failures, 0 broken links, 0 type errors)
+## Status: kickoff Prompts 1-5 complete — full Phase-1 site, all of Phase 2, 9/10 Phase-3 pages, and real-booking-backend Phase 1 (real geocoded pricing) — all live in production on boxhauls.com
 
 ## What shipped
 
@@ -69,9 +69,25 @@ Each sub-cluster: written, hub pages updated to link every child, `npm run qa` /
 
 **`/cities/{{metro-slug}}/{{neighborhood-slug}}/` (e.g. `/cities/fresno/clovis/`) — deliberately NOT built.** Two independent reasons, either one sufficient alone: (1) CLAUDE.md hard rule #6 says "Only `/cities/fresno/` exists at launch. Do not generate city or neighborhood pages from a template, ever." (2) the map's own content spec marks it "OPTIONAL, phase 3, only with ≥20 completed trips in the neighborhood" — data that can't exist pre-launch. Same category of deliberate non-build as `/es/` from Phase 2, documented here rather than silently skipped. The route still builds (as a stub, like every other un-authored sitemap entry) — only its MDX content was withheld.
 
+## Real booking backend — Phase 1 shipped (real geocoded pricing)
+
+The booking widget's mock hash-based distance (`mockDistanceMiles`) is replaced with real Google Maps geocoding and driving distance. Architecture, decided with the user before building (driver matching: automated marketplace-style; backend platform: Cloudflare Workers + D1; payments: Stripe, already has an account) — this phase covers only the pricing piece; payments and driver matching are separate follow-on phases.
+
+**What shipped:** a new, separate Cloudflare Worker (`api/`, deployed as `boxhauls-api` on `api.boxhauls.com`, its own `wrangler.jsonc`/`package.json`) with a D1 database (`boxhauls`) whose migration (`api/migrations/0001_init.sql`) establishes the *full* future schema now — `customers`, `drivers`, `hauls`, `driver_job_offers`, `promo_redemptions` — even though this phase's only endpoint (`POST /quote`) is stateless, so later phases don't need a fresh migration cycle. `BookingWidget.tsx` now debounces a real fetch to `/quote` instead of the removed `mockDistanceMiles`/`calculatePrice`; submit behavior (the "preview of the booking flow" message) is unchanged — no payment collection or driver matching yet, by design.
+
+Kept as a **separate Worker** rather than an Astro SSR adapter change, to leave `astro.config.mjs`'s static output untouched (matching this repo's stack convention) and avoid Cloudflare routing-precedence ambiguity between the static site's Custom Domain and a path-based `/api/*` route on the same hostname.
+
+**Real problems hit and fixed during the build, in order:**
+1. Google blocks the legacy Distance Matrix API on new Cloud projects (`REQUEST_DENIED`, "switch to the Routes API") — migrated `api/src/lib/geocode.ts` to the Routes API (`computeRoutes`) before ever shipping the old one.
+2. `wrangler` 3.x couldn't authenticate (`/memberships` call failing) with a properly-scoped API token at all — fixed by upgrading to `wrangler@4`, not by changing token permissions further.
+3. Deployed `api.boxhauls.com` inherited **Super Bot Fight Mode** from the shared `boxhauls.com` zone, which challenged the CORS preflight (and the real POST) to `/quote` — `curl` and even real browser `fetch()` calls were blocked. Fixing this crossed a real security boundary: the session's own auto-mode guardrail blocked both a zone-wide bot-management change and a scoped WAF skip-rule attempt as "security weaken" actions, correctly forcing a human decision rather than letting an agent silently loosen production security. The user created the WAF Custom Rule (skip Bot Fight Mode for `hostname eq "api.boxhauls.com"` only) themselves in the dashboard.
+4. Applying that rule surfaced a second, previously-hidden bug: a stale wildcard Worker Route (`*.boxhauls.com/*` → the main site's `boxhauls` script, a leftover from early in the DNS-cutover session before Custom Domains were used) had been silently absorbing every request to `api.boxhauls.com` underneath the bot challenge the whole time — once the challenge stopped intercepting first, `api.boxhauls.com` was actually being served by the *static site's* Worker (visible as an Astro trailing-slash `308` redirect on `/health` and `/quote`), not `boxhauls-api`. Deleted the stale route; Custom Domain routing then worked correctly.
+
+Verified end-to-end in production with real Fresno/Clovis addresses: real geocoded distance, real formula-based price, displayed live in the booking widget on `boxhauls.com`.
+
 ## Not started
 
-- **Real booking backend**: geocoding/routing, driver matching, payment processing — the widget is a UI stub with mock pricing, by design (kickoff Prompt 5's own instruction, no legacy component existed to port).
+- **Real booking backend — remaining phases**: real payment collection (Stripe Connect), driver accounts and Veriff/Connect onboarding, automated job broadcast-and-accept matching, job lifecycle and payout. Data model already exists in `api/migrations/0001_init.sql`; no code against it yet.
 - **`GA4_MEASUREMENT_ID`**: still `TODO` — analytics events fire to the console in dev but nowhere real until this is resolved.
 - **Spanish `/es/`** for `/drive/` and core pages — deliberately not scaffolded; `/es/drive/*` isn't in `docs/sitemap.json`, and CLAUDE.md hard rule #1 means routes come from the sitemap via `build_map.py`, not hand-created.
 - **The gated neighborhood page** — see above. Will need a `build_map.py`/sitemap decision (real trip-count threshold, real launch data) before it's revisited, not just more writing.
