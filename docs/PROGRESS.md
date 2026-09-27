@@ -85,9 +85,21 @@ Kept as a **separate Worker** rather than an Astro SSR adapter change, to leave 
 
 Verified end-to-end in production with real Fresno/Clovis addresses: real geocoded distance, real formula-based price, displayed live in the booking widget on `boxhauls.com`.
 
+**Driver-accounts phase (the natural next step — supply side is the real bottleneck to launch) is paused**, not started: BoxHauls, LLC incorporated in California within the last 24 hours and is waiting on its EIN, which Checkr requires for a compliant account. Also decided during scoping: Checkr replaces Veriff as `BACKGROUND_PROVIDER` (Stripe Connect Express's KYC only verifies identity for payout compliance — it does not run criminal or driving-record checks, so a dedicated background-check provider is still required for the vetting `/trust/driver-vetting/` actually describes; Checkr integrates cleanly with Stripe Connect driver flows and is what GoShare, researched earlier, already uses). This swap is live in content now, even though the driver-accounts build itself is on hold.
+
+## `docs/TODO.md` reduction pass (in progress)
+
+While driver-accounts is paused, working through remaining `docs/TODO.md` placeholders in two tracks: business-policy decisions (asked directly, only the user can answer — fees, insurance, cancellation/refund policy, rating threshold, etc., still open) and externally-researchable facts (delegated to a research agent, sourced from official sites only). Resolved so far from the research track:
+
+- Fresno/Clovis municipal: American Avenue Disposal Site and CARTS hours (County of Fresno's own tipping-fee PDF and disposal-sites page); Fresno's One-Time Bulky Item Pickup, Operation Clean Up, and Free Dump Events; Clovis's Community Clean-Up program (fresno.gov, clovisca.gov directly). CARTS fees specifically left as "call to confirm" rather than publishing the only rate sheet found, a stale 2021 PDF on a third-party host — an honest gap beats a confidently-wrong number.
+- Fresno State: confirmed Fall 2026 move-in date and move-in-day parking policy; move-out date deliberately kept general since the source was a snippet, not a direct fetch.
+- All 9 retailer pickup-lane placeholders, each sourced from that retailer's own help pages — several surfaced real, useful limitations (Costco has no online pickup counter for large items; Walmart ships big/bulky items by carrier delivery, not in-store pickup; Target routes ineligible-for-Drive-Up furniture to Guest Services) worth stating plainly rather than assuming a generic process.
+
+Still open from the business-policy track: insurance carrier/limit, driver liability minimum, stairs/wait-time/cancellation fees, heavy-fee weight threshold, truck tier dimensions, appliance recycling fee, marketplace payment/no-show policy, rating threshold, recheck cadence, cancellation/refund window details, damage-claim windows, hot tub permit responsibility, and `LEGAL_REVIEW_STATUS` (needs an actual attorney). `APARTMENT_CORRIDORS` remains unresolved — outside the scope of the research pass so far.
+
 ## Not started
 
-- **Real booking backend — remaining phases**: real payment collection (Stripe Connect), driver accounts and Veriff/Connect onboarding, automated job broadcast-and-accept matching, job lifecycle and payout. Data model already exists in `api/migrations/0001_init.sql`; no code against it yet.
+- **Real booking backend — remaining phases**: real payment collection (Stripe Connect), driver accounts and Checkr/Connect onboarding, automated job broadcast-and-accept matching, job lifecycle and payout. Data model already exists in `api/migrations/0001_init.sql`; no code against it yet. Blocked on the LLC's EIN for the Checkr account.
 - **`GA4_MEASUREMENT_ID`**: still `TODO` — analytics events fire to the console in dev but nowhere real until this is resolved.
 - **Spanish `/es/`** for `/drive/` and core pages — deliberately not scaffolded; `/es/drive/*` isn't in `docs/sitemap.json`, and CLAUDE.md hard rule #1 means routes come from the sitemap via `build_map.py`, not hand-created.
 - **The gated neighborhood page** — see above. Will need a `build_map.py`/sitemap decision (real trip-count threshold, real launch data) before it's revisited, not just more writing.
